@@ -1,0 +1,103 @@
+#include <Servo.h>
+#include <TimeLib.h>
+#include <DS1307RTC.h>
+#include<Wire.h>
+#include<LiquidCrystal_I2C.h>
+#include <Keypad.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const byte Rows = 4;
+const byte Cols = 3;
+
+char hexaKeys[Rows][Cols] = {
+  {'1','2','3'},
+  {'4','5','6'},
+  {'7','8','9'},
+  {'*','0','#'}
+};
+
+byte rowPins[Rows] = {9,8,7,6};
+byte colPins[Cols] = {5,4,3};
+
+Keypad myKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, Rows, Cols);
+
+char g[4]={'1','4','5','0'},h[4]={'1','2','2','5'};
+
+#define pinServo 2
+Servo servo1;
+void feed(){
+  servo1.write(150);
+  delay(400);
+  servo1.write(70);
+  delay(600);
+  servo1.write(150);
+  delay(400);
+  servo1.write(70);
+  delay(600);
+  servo1.write(150);
+  delay(400);
+  servo1.write(70);
+  }
+  //abertura 3x é mais eficiente que delay(1200) 
+  
+void print2digits(int number){
+  if(number>=0 && number<10){
+    lcd.print('0');
+  }
+  lcd.print(number);
+}
+
+//menu principal: mostra os horários definidos
+void pmenu(){
+  int H1[2]={(g[0]-'0')*10 + g[1]-'0',(g[2]-'0')*10 + g[3]-'0'}, H2[2]={(h[0]-'0')*10 + h[1]-'0',(h[2]-'0')*10 + h[3]-'0'};  
+  lcd.backlight();
+  lcd.display();
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("H1=");
+  print2digits(H1[0]);
+  lcd.print(":");
+  print2digits(H1[1]);
+  lcd.blink_off();
+  lcd.setCursor(0,1);
+  lcd.print("H2=");
+  print2digits(H2[0]);
+  lcd.print(":");
+  print2digits(H2[1]);
+}
+
+void setup() {
+  lcd.init(); 
+  lcd.noBacklight();
+  lcd.noDisplay();
+  servo1.attach(pinServo);
+  servo1.write(70);
+}
+
+void loop() {
+  int H1[2]={(g[0]-'0')*10 + g[1]-'0',(g[2]-'0')*10 + g[3]-'0'}, H2[2]={(h[0]-'0')*10 + h[1]-'0',(h[2]-'0')*10 + h[3]-'0'};
+
+//conferir o horário, feed() se for um dos horários estabelecidos
+  tmElements_t tm;
+  if(RTC.read(tm)) {
+     int hora= tm.Hour;
+     int minuto = tm.Minute;
+      if((hora==H1[0]&&minuto==H1[1])||(hora==H2[0]&&minuto==H2[1])){
+      feed();
+      delay(60000);
+      }
+  }
+  
+  //pressionar '*' para "ligar" o LCD,  '#' para "desligar"
+  char p = myKeypad.getKey();
+  if (p=='*'){
+    pmenu();
+  }
+  char q = myKeypad.getKey();
+  if(p=='#'){
+    lcd.noCursor();
+    lcd.noBacklight();
+  }
+
+}
