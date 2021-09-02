@@ -76,6 +76,8 @@ void setup() {
 }
 
 void loop() {
+  
+//transformando valores char em int
   int H1[2]={(g[0]-'0')*10 + g[1]-'0',(g[2]-'0')*10 + g[3]-'0'}, H2[2]={(h[0]-'0')*10 + h[1]-'0',(h[2]-'0')*10 + h[3]-'0'};
 
 //conferir o horário, feed() se for um dos horários estabelecidos
